@@ -1,0 +1,11 @@
+astroid==3.2.2
+colorama==0.4.6
+dill==0.3.8
+isort==5.13.2
+kafka-python==2.0.2
+mccabe==0.7.0
+platformdirs==4.2.2
+pylint==3.2.2
+setuptools==69.5.1
+tomlkit==0.12.5
+wheel==0.43.0
