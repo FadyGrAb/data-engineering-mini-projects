@@ -1,0 +1,21 @@
+{
+  "schemaName": "NetworkAlarms",
+  "dateTimeFieldSpecs": [
+    {
+      "name": "timestamp",
+      "dataType": "STRING",
+      "format": "SIMPLE_DATE_FORMAT|yyyy-MM-dd HH:mm:ss",
+      "granularity": "1:SECONDS"
+    }
+  ],
+  "dimensionFieldSpecs": [
+    {
+      "name": "node",
+      "dataType": "STRING"
+    },
+    {
+      "name": "alarm",
+      "dataType": "STRING"
+    }
+  ]
+}
