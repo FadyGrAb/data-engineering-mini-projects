@@ -54,6 +54,7 @@ Move to the project's root directory and perform the following.
   ```bash
   git clone --depth=1  https://github.com/apache/superset.git
   ```
+- Create a `docker/requirements-local.txt` inside the docker directory in the newly cloned repo folder. Write inside it `pinotdb`
 - Change directory into the superset folder and spin-up the Apache Superset docker compose file
   ```bash
   docker compose -f docker-compose-image-tag.yml up
