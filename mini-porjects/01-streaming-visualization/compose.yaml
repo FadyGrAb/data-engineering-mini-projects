@@ -74,3 +74,4 @@ services:
 
 networks:
   streaming-nt:
+    external: true

@@ -9,7 +9,11 @@ Streaming data real-time visualization using:
 
 ## Instructions:
 Move to the project's root directory and perform the following.
-- Spinning up the project's containers
+- Create the external docker network
+  ```bash
+  docker network create streaming-nt 
+  ```
+- Spinning up the Pinot and Kafka containers containers
   ```bash
   docker compose up -d
   ```
@@ -45,6 +49,18 @@ Move to the project's root directory and perform the following.
       -controllerHost pinot-controller \
       -controllerPort 9000 \
       -exec
+  ```
+- Clone the Apache Superset repo
+  ```bash
+  git clone --depth=1  https://github.com/apache/superset.git
+  ```
+- Change directory into the superset folder and spin-up the Apache Superset docker compose file
+  ```bash
+  docker compose -f docker-compose-image-tag.yml up
+  ```
+- Enter the connection string while connecting to the Pinot database through Superset UI on http://localhost:8088
+  ```
+  pinot://pinot-broker:8099/query?controller=http://pinot-controller:9000/
   ```
 
 ## Take away points:

@@ -47,4 +47,4 @@ while True:
 
     producer.send(topic="network-alarms", value=json.dumps(payload).encode())
     print(payload)
-    sleep(0.25)
+    sleep(random.random())
