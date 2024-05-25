@@ -3,6 +3,8 @@
   - [What is this project all about](#what-is-this-project-all-about)
   - [System architecture](#system-architecture)
   - [Demo](#demo)
+    - [Real-time dashboard](#real-time-dashboard)
+    - [Querying Pinot](#querying-pinot)
   - [Instructions](#instructions)
     - [Environment and Docker preparation](#environment-and-docker-preparation)
     - [Configuring Kafka Topic](#configuring-kafka-topic)
@@ -10,6 +12,7 @@
     - [Downloading and Running Superset](#downloading-and-running-superset)
     - [Connection Superset to Pinot](#connection-superset-to-pinot)
     - [Running the alarms simulation and watch the Dashboard](#running-the-alarms-simulation-and-watch-the-dashboard)
+    - [Stopping the project](#stopping-the-project)
   - [Things to consider if you want to make this into real-world project:](#things-to-consider-if-you-want-to-make-this-into-real-world-project)
   - [Key takeaway points](#key-takeaway-points)
   - [References](#references)
@@ -20,13 +23,18 @@ In this project, I'll simulate a networks that has several nodes which generate 
 - [Apache Pinot](https://pinot.apache.org/): A real-time analytics open source platform for lighting-fast insights.
 - [Apache Superset](https://superset.apache.org/): An open source modern data exploration and visualization platform.
 
+>In order to run this project, you will need a machine with at least 16GB of RAM.
+
 ## System architecture
 ![architecture](./diagrams/streaming-visualization.png)  
 
 This project uses containerized Kafka, Pinot, and Superset on a single host machine. Kafka is configured to use two listeners, one for external clients (the Python script) on **localhost:29092** and the other for internal clients (Apache Pinot) on the advertised host **kafka:9092**. Apache Pinot is used as an OLAP data store to serve as a lightening fast analytics engine for Apache Superset which beautifully visualized the data on Pinot. Kafka and Pinot are up using their own `docker-compose` file separate from Apache Superset as merging all three in one file would prove to be a challenge (at least for me!). This introduced a problem for Pinot and Superset communications as they are "technically" on different networks now. To overcome this, I've created a manual network inside docker and configured all the services inside both Docker compose files to use it.
 
 ## Demo
-
+### Real-time dashboard
+![system](./diagrams/demo-system.gif)
+### Querying Pinot
+![query](./diagrams/demo-query.gif)  
 ## Instructions
 I've deliberately made some of instructions needed to get this project into a working state manual instead of automating them (creating an app_init container or a script) to encourage your engagement and curiosity.
 ### Environment and Docker preparation
@@ -89,19 +97,23 @@ I've deliberately made some of instructions needed to get this project into a wo
 - Create a `docker/requirements-local.txt` inside the docker directory in the newly cloned repo folder. Write inside it `pinotdb`. This will automatically install this package needed for Pinot-Superset connection.
 - Spin-up the Apache Superset docker compose file
   ```bash
-  docker compose -f docker-compose-image-tag.yml up
+  docker compose -f docker-compose-image-tag.yml up -d
   ```
   Docker compose might through errors about the `env_file` in the docker compose file needs to be of STRING type. Copy the docker compose file in `superset-local` to `superset` directory and then run it again.
 
 ### Connection Superset to Pinot
 - Login to the Superset UI on `http://localhost:8088`.
 - Use `admin` as both the username and password.
-- Click add Database. <----- Enter screenshot here.
-- Enter the connection string while connecting to the Pinot database.
+- Follow the illustrated instructions to add a database.
+  ![add database](./diagrams/01.png)
+  ![add database 2](./diagrams/02.png)
+- Enter the connection string while connecting to the Pinot database. Press "Test Connection". If it passes, click Connect.
   ```
   pinot://pinot-broker:8099/query?controller=http://pinot-controller:9000/
   ```
+  ![connection string](./diagrams/03.png)
 - Create your own charts and dashboard or use the one in `superset-local`.
+  ![import dash](./diagrams/04.png)
 
 ### Running the alarms simulation and watch the Dashboard
 - Move back to the project's root directory and run the alarms simulation script. You will see a mock alarms printed on your terminal.
@@ -111,7 +123,20 @@ cd ..
 # use python or python3 according to your system
 python alarms_generator_script/generate_alarms.py
 ```
-- Set the the Dashboard refresh interval as per your preference and watch it updates and ENJOY 😉 <--- insert screenshot
+- Set the the Dashboard refresh interval as per your preference and watch it updates and ENJOY 😉
+  ![refresh](./diagrams/05.png)
+  ![dashboard](./diagrams/06.png)
+
+### Stopping the project
+- To stop the Python alarms generator, press Ctrl + c.
+- To spin-down Kafka and Pinot, go to the project's root directory and enter the following
+  ```bash
+  docker compose down
+  ```
+- To spin-down Superset
+  ```bash
+  docker compost -f superset/docker-compose-image-tag.yml down
+  ```
 
 ## Things to consider if you want to make this into real-world project:
 - This whole project, although containerized, is setup on a single host machine which isn't ideal in a production environment not to mention it defeats the purpose of using open source *distributed* systems.
