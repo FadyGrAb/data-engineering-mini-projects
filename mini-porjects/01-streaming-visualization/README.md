@@ -14,7 +14,7 @@
     - [Running the alarms simulation and watch the Dashboard](#running-the-alarms-simulation-and-watch-the-dashboard)
     - [Stopping the project](#stopping-the-project)
   - [Things to consider if you want to make this into real-world project:](#things-to-consider-if-you-want-to-make-this-into-real-world-project)
-  - [Key takeaway points](#key-takeaway-points)
+  - [Key takeaways](#key-takeaways)
   - [References](#references)
 
 ## What is this project all about
@@ -145,7 +145,7 @@ python alarms_generator_script/generate_alarms.py
 - Kafka, Pinot, and Superset access controls should be more restrictive.
 - Superset has an **Alerts** and **Reports** that can send out both on a schedule or in response to a threshold crossing with greatly improves the response of Operations teams. Read about it [here](https://superset.apache.org/docs/configuration/alerts-reports).
 
-## Key takeaway points
+## Key takeaways
 - Configuring *Listeners* for Kafka in a containerized environment is super important.
 - Configuring Docker networking is crucial for a mildly complex containerized setup.
 - Checking systems "version" compatibility before implementing the system is very important. Initially, I was using Kafka 3.x and couldn't make it to work with Pinot only to find out that Pinot connectors only supports Kafka 2.x!

@@ -33,7 +33,7 @@ routing_key = "cdc"
 
 if __name__ == "__main__":
     try:
-        print("Waiting for CDC data from Postgresql...")
+        print("Waiting for CDC data from Postgresq. To exit press CTRL+C")
         # Continuously fetch new data
         while True:
             # Execute the SQL query to retrieve change records

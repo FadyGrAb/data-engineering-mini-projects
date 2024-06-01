@@ -1,2 +1,5 @@
 _in_progress
 superset
+venv
+_basefiles
+*.drawio.bkp
