@@ -11,6 +11,8 @@ services:
     ports:
       - 5432:5432
     command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./postgresql/init.sql://docker-entrypoint-initdb.d/init.sql
 
   mariadb:
     container_name: mariadb

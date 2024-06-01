@@ -1,30 +1,30 @@
-DROP TABLE IF EXISTS ITRequests;
+DROP TABLE IF EXISTS itrequests;
 
 -- Create Test table
 CREATE TABLE
-    ITRequests (
-        RequestID SERIAL PRIMARY KEY,
-        Details VARCHAR(60) NOT NULL,
-        DueDate DATE NOT NULL,
-        Fulfilled BOOLEAN NOT NULL
+    itrequests (
+        requestid SERIAL PRIMARY KEY,
+        details VARCHAR(60) NOT NULL,
+        duedate DATE NOT NULL,
+        fulfilled BOOLEAN NOT NULL
     );
 
 -- Insert rows
 INSERT INTO
-    ITRequests (Details, DueDate, Fulfilled)
+    itrequests (details, duedate, fulfilled)
 VALUES
     ('Reset my user password', '2024-07-15', FALSE),
     ('Repair laptop', '2024-07-20', FALSE),
     ('Restart main server', '2024-07-25', FALSE);
 
 -- Update records
-UPDATE ITRequests
+UPDATE itrequests
 SET
-    Fulfilled = TRUE
+    fulfilled = TRUE
 WHERE
-    RequestID = 2;
+    requestid = 2;
 
 -- Delete records
-DELETE FROM ITRequests
+DELETE FROM itrequests
 WHERE
-    RequestID = 1;
+    requestid = 1;

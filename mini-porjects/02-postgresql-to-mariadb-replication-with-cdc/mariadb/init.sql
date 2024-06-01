@@ -1,11 +1,11 @@
 CREATE DATABASE IF NOT EXISTS requests;
 
 CREATE TABLE
-    IF NOT EXISTS requests.ITRequests (
-        RequestID INT PRIMARY KEY,
-        Details VARCHAR(60) NOT NULL,
-        DueDate DATE NOT NULL,
-        Fulfilled BOOLEAN NOT NULL
+    IF NOT EXISTS requests.itrequests (
+        requestid INT PRIMARY KEY,
+        details VARCHAR(60) NOT NULL,
+        duedate DATE NOT NULL,
+        fulfilled BOOLEAN NOT NULL
     );
 
 -- Create user 'mariadb' and grant privileges

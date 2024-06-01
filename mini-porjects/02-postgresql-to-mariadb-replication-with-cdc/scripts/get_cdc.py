@@ -15,7 +15,7 @@ conn_settings = {
     "dbname": os.environ.get("POSTGRES_DB", "requests"),
     "user": os.environ.get("POSTGRES_USER", "postgres"),
     "password": os.environ.get("POSTGRES_PASSWORD", "postgres"),
-    "host": os.environ.get("PSQL_HOST", "host"),
+    "host": os.environ.get("PSQL_HOST", "locahost"),
     "port": os.environ.get("PSQL_PORT", "5432"),
 }
 
