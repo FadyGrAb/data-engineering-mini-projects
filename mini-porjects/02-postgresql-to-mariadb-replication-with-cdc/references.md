@@ -10,3 +10,4 @@
 5. SELECT * FROM pg_logical_slot_get_changes('slot_cdc', NULL, NULL);
 6. docker compose exec postgresql bash -c "pg_recvlogical -U postgres -d requests --slot slot_cdc --drop-slot"
 7. docker compose exec postgresql bash -c "psql -U postgres -d requests < /tmp/db-changes-demo.sql"
+mariadb -h localhost -P 3306 -u mariadb -pmariadb < /tmp/init.sql 
