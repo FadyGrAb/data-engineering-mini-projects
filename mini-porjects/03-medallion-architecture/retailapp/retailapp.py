@@ -9,25 +9,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_username = os.environ.get("DB_USERNAME")
-db_password = os.environ.get("DB_PASSWORD")
-db_host = os.environ.get("DB_HOST", "localhost")
-
-retail_branches = [
-    "City Central Mall",
-    "Metro Plaza",
-    "Grand Avenue Center",
-    "Harbor View Mall",
-    "Oakwood Square",
-    "Sunset Park Mall",
-    "Pinecrest Shopping Center",
-    "Riverfront Plaza",
-    "Springfield Town Center",
-    "Lakeside Mall",
-]
-
-operations = ["new", "intransit", "delivered"]
-
 
 def new():
     """
@@ -68,9 +49,7 @@ def new():
     # Begin a transaction
     cursor.execute("BEGIN;")
     cursor.execute(insert_order, (order_time.strftime("%Y-%m-%d %H:%M:%S"), branch))
-    cursor.execute(
-        insert_history, ("INITIATED", order_time.strftime("%Y-%m-%d %H:%M:%S"))
-    )
+    cursor.execute(insert_history, ("NEW", order_time.strftime("%Y-%m-%d %H:%M:%S")))
     connection.commit()
 
     print(
@@ -80,9 +59,15 @@ def new():
     )
 
 
-def intransit():
+def update_delivery(from_status: str, to_status: str) -> None:
+    """Simulates the new order update
+
+    Args:
+        from_status (str): The original order status "INITIATED/INTRANSIT"
+        to_status (str): The new order status "INTRANSIT/DELIVERED"
+    """
     global order_time
-    ids = get_last_status("INITIATED")
+    ids = get_last_status(from_status)
     if len(ids) > 0:
         orderid = random.choice(ids)
         insert_history = """
@@ -91,40 +76,23 @@ def intransit():
             (%s, %s, %s);
         """
         order_time += timedelta(minutes=random.randint(1, 59))
+        order_time_str = order_time.strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute(
             insert_history,
-            (orderid, "INTRANSIT", order_time.strftime("%Y-%m-%d %H:%M:%S")),
+            (orderid, to_status, order_time_str),
         )
+        color = Fore.CYAN if to_status == "INTRANSIT" else Fore.GREEN
         print(
-            f"{Fore.CYAN}[INTRANSIT]{Style.RESET_ALL}",
+            f"{color}[{to_status}]{Style.RESET_ALL}",
             orderid,
-            order_time.strftime("%Y-%m-%d %H:%M:%S"),
-        )
-
-
-def delivered():
-    global order_time
-    ids = get_last_status("INTRANSIT")
-    if len(ids) > 0:
-        orderid = random.choice(ids)
-        insert_history = """
-        INSERT INTO ordershistory (orderid, status, updatedat)
-        VALUES
-            (%s, %s, %s);
-        """
-        order_time += timedelta(minutes=random.randint(1, 59))
-        cursor.execute(
-            insert_history,
-            (orderid, "DELIVERED", order_time.strftime("%Y-%m-%d %H:%M:%S")),
-        )
-        print(
-            f"{Fore.GREEN}[DELIVERED]{Style.RESET_ALL}",
-            orderid,
-            order_time.strftime("%Y-%m-%d %H:%M:%S"),
+            order_time_str,
         )
 
 
 def get_last_date() -> datetime:
+    """
+    Gets the last date in the oredershistory table or the current time
+    """
     cursor.execute(
         """
             SELECT MAX(updatedat) FROM ordershistory;
@@ -136,6 +104,9 @@ def get_last_date() -> datetime:
 
 
 def get_last_status(status: str) -> list:
+    """
+    Gets the orders last status
+    """
     query = """
         WITH laststatus AS (
             SELECT
@@ -159,6 +130,25 @@ def get_last_status(status: str) -> list:
     return flatten
 
 
+db_username = os.environ.get("DB_USERNAME")
+db_password = os.environ.get("DB_PASSWORD")
+db_host = os.environ.get("DB_HOST", "localhost")
+
+# Fictional retail branches
+retail_branches = [
+    "City Central Mall",
+    "Metro Plaza",
+    "Grand Avenue Center",
+    "Harbor View Mall",
+    "Oakwood Square",
+    "Sunset Park Mall",
+    "Pinecrest Shopping Center",
+    "Riverfront Plaza",
+    "Springfield Town Center",
+    "Lakeside Mall",
+]
+
+operations = ["NEW", "INTRANSIT", "DELIVERED"]
 try:
 
     connection_params = {
@@ -175,14 +165,14 @@ try:
     order_time = get_last_date()
     while True:
         op = random.choices(operations, weights=[2, 1, 1], k=1)[0]
-        if op == "new":
+        if op == "NEW":
             new()
-        elif op == "intransit":
-            intransit()
-        elif op == "delivered":
-            delivered()
+        elif op == "INTRANSIT":
+            update_delivery("NEW", "INTRANSIT")
+        elif op == "DELIVERED":
+            update_delivery("INTRANSIT", "DELIVERED")
 
-        sleep(0.5)
+        sleep(0.25)
 
 except psycopg2.Error as e:
     print(e)

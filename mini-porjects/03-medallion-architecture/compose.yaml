@@ -1,86 +1,96 @@
 name: medallion
 services:
-  # spark-master:
-  #   image: spark:latest
-  #   container_name: spark-master
-  #   environment:
-  #     - SPARK_MASTER_HOST=spark-master
-  #     - SPARK_MASTER_PORT=7077
-  #     - SPARK_MODE=master
-  #   ports:
-  #     - 8080:8080
-  #     - 4040:4040
-  #     - 18080:18080  
-  #   entrypoint: ["/bin/bash", "-c", "./run-spark.sh"]
+  spark-master:
+    image: spark:homemade
+    container_name: spark-master
+    restart: always
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MODE=master
+    env_file:
+      - ./spark/.env
+    ports:
+      - 8080:8080
+      - 4040:4040 # History server
+      - 18080:18080
+      - 8888:8888 # Jupyter server
+      - 6066:6066 # Spark http server
+    volumes:
+      - ./spark/.bashrc:/root/.bashrc
+      - ./spark/jupyter_notebook_config.py:/root/.jupyter/jupyter_notebook_config.py
+      - ./spark/spark-defaults.conf:/spark/conf/spark-defaults.conf
+    entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
 
-  # spark-worker-1:
-  #   image: spark:latest
-  #   restart: always
-  #   container_name: spark-worker-1
-  #   environment:
-  #     - SPARK_MASTER_HOST=spark-master
-  #     - SPARK_MASTER_PORT=7077
-  #     - SPARK_MODE=worker
-  #     - WORKER_MEMORY=2g
-  #     - WORKER_CORES=3
-  #   depends_on:
-  #     - spark-master
-  #   ports:
-  #     - 8081:8081
-  #   entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
+  spark-worker-1:
+    image: spark:homemade
+    restart: always
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MODE=worker
+      - WORKER_MEMORY=2g
+      - WORKER_CORES=3
+    depends_on:
+      - spark-master
+    ports:
+      - 8081:8081
+    entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
     
     
-  # spark-worker-2:
-  #   image: spark:latest
-  #   restart: always
-  #   container_name: spark-worker-2
-  #   environment:
-  #     - SPARK_MASTER_HOST=spark-master
-  #     - SPARK_MASTER_PORT=7077
-  #     - SPARK_MODE=worker
-  #     - WORKER_MEMORY=2g
-  #     - WORKER_CORES=3
-  #   depends_on:
-  #     - spark-master
-  #   ports:
-  #     - 8082:8081
-  #   entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
+  spark-worker-2:
+    image: spark:homemade
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    restart: always
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MODE=worker
+      - WORKER_MEMORY=2g
+      - WORKER_CORES=3
+    depends_on:
+      - spark-master
+    ports:
+      - 8082:8081
+    entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
   
   
-  # hadoop-namenode:
-  #   image: apache/hadoop:3
-  #   container_name: hadoop-namenode
-  #   hostname: hadoop-namenode
-  #   command: ["hdfs", "namenode"]
-  #   ports:
-  #     - 9870:9870
-  #   env_file:
-  #     - ./config
-  #   environment:
-  #       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
-  # hadoop-datanode:
-  #   container_name: hadoop-datanode
-  #   image: apache/hadoop:3
-  #   command: ["hdfs", "datanode"]
-  #   env_file:
-  #     - ./config      
-  # hadoop-resourcemanager:
-  #   image: apache/hadoop:3
-  #   container_name: hadoop-resourcemanager
-  #   hostname: hadoop-resourcemanager
-  #   command: ["yarn", "resourcemanager"]
-  #   ports:
-  #       - 8088:8088
-  #   env_file:
-  #     - ./config
-  #   volumes:
-  #     - ./test.sh:/opt/test.sh
-  # hadoop-nodemanager:
-  #   image: apache/hadoop:3
-  #   container_name: hadoop-nodemanager
-  #   command: ["yarn", "nodemanager"]
-  #   env_file:
-  #     - ./config
+  hadoop-namenode:
+    image: apache/hadoop:3
+    container_name: hadoop-namenode
+    hostname: hadoop-namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - 9870:9870
+    env_file:
+      - ./hadoop/config
+    environment:
+        ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+  hadoop-datanode:
+    container_name: hadoop-datanode
+    image: apache/hadoop:3
+    command: ["hdfs", "datanode"]
+    env_file:
+      - ./hadoop/config    
+  hadoop-resourcemanager:
+    image: apache/hadoop:3
+    container_name: hadoop-resourcemanager
+    hostname: hadoop-resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+        - 8088:8088
+    env_file:
+      - ./hadoop/config
+  hadoop-nodemanager:
+    image: apache/hadoop:3
+    container_name: hadoop-nodemanager
+    command: ["yarn", "nodemanager"]
+    env_file:
+      - ./hadoop/config
 
   postgres:
     image: postgres:latest

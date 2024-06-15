@@ -1,0 +1,1 @@
+docker compose exec hadoop-namenode bash -c "hdfs dfs -mkdir -p /data/bronze /data/silver /data/gold && hdfs dfs -chmod 777 /data"

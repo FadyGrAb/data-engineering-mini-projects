@@ -4,6 +4,8 @@ DROP DATABASE IF EXISTS retail;
 CREATE Database retail;
 
 \c retail;
+
+-- Create tables
 CREATE TABLE
     orders (
         orderid SERIAL PRIMARY KEY,
@@ -20,7 +22,7 @@ CREATE TABLE
         FOREIGN KEY (orderid) REFERENCES orders (orderid)
     );
 
--- Create User
+-- Create App User
 CREATE USER appuser
 WITH
     PASSWORD 'apppassword';
@@ -34,3 +36,9 @@ GRANT INSERT,
 UPDATE, 
 SELECT
     ON ALL TABLES IN SCHEMA public TO appuser;
+
+-- Create Spark User
+CREATE USER sparkuser WITH PASSWORD 'sparkpassword';
+GRANT USAGE ON SCHEMA public TO sparkuser;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO sparkuser;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO sparkuser;
