@@ -8,8 +8,8 @@ services:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
       - SPARK_MODE=master
-    # env_file:
-    #   - ./spark/.env
+    env_file:
+      - ./spark/.env
     ports:
       - 8080:8080 # Master node ui
       - 4040:4040 # Driver ui

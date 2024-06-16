@@ -1,11 +1,14 @@
+import os
+
 c = get_config()
 
-c.NotebookApp.ip = '0.0.0.0'
+c.NotebookApp.ip = "0.0.0.0"
 c.NotebookApp.port = 8888
 c.NotebookApp.open_browser = False
 
 from notebook.auth import passwd
-c.NotebookApp.password = passwd('notebookpassword')
+
+c.NotebookApp.password = passwd(os.environ.get("JUPYTER_NOTEBOOK_PASSWORD"))
 
 # Uncomment and set a base URL path for added security
 # c.NotebookApp.base_url = '/jupyter'
