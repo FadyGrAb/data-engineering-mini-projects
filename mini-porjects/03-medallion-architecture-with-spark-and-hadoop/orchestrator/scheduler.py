@@ -1,6 +1,7 @@
 import json
 import os
 from pprint import pprint
+from time import sleep
 
 import requests
 from dotenv import load_dotenv
@@ -13,7 +14,6 @@ def submit_job(master_url, app_name, args=None):
     data = {
         "appResource": "",
         "sparkProperties": {
-            # "spark.submit.deployMode": "client",
             "spark.master": "spark://spark-master:7077",
             "spark.app.name": app_name,
             "spark.driver.memory": "1g",
@@ -34,14 +34,33 @@ def submit_job(master_url, app_name, args=None):
     return response.json()
 
 
+def get_submission_state(submission_id):
+    response = requests.get(
+        url=f"http://localhost:6066/v1/submissions/status/{submission_id}"
+    )
+
+    return response.json().get("driverState", "NOTFOUND")
+
+
 if __name__ == "__main__":
     py_file_path = "hdfs://hadoop-namenode:8020/jobs/ingestion.py"
-    pprint(
-        submit_job(
-            master_url="http://localhost:6066",
-            app_name="Ingestion",
-            args=[
-                py_file_path,
-            ],
-        )
+    response = submit_job(
+        master_url="http://localhost:6066",
+        app_name="Ingestion",
+        args=[
+            py_file_path,
+        ],
     )
+
+    if response["success"]:
+        submission_id = response["submissionId"]
+        state = ""
+        while not state in ["FINISHED", "FAILED", "NOTFOUND"]:
+            current_state = get_submission_state(submission_id)
+            if state != current_state:
+                state = current_state
+                print(state)
+            sleep(0.1)
+    else:
+        print("Something went wrong:")
+        pprint(response)

@@ -12,7 +12,7 @@ services:
     #   - ./spark/.env
     ports:
       - 8080:8080 # Master node ui
-      - 4040:4040 # Job progress
+      - 4040:4040 # Driver ui
       - 18080:18080 # History server
       - 8888:8888 # Jupyter server
       - 6066:6066 # Spark http server
@@ -69,7 +69,7 @@ services:
     hostname: hadoop-namenode
     command: ["hdfs", "namenode"]
     ports:
-      - 9870:9870
+      - 9870:9870 # Namenode UI
       - 8020:8020
     env_file:
       - ./hadoop/config
@@ -77,6 +77,7 @@ services:
         ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     volumes:
       - ./spark/pipeline/:/opt/hadoop/pipeline
+      - ./hadoop/init.sh:/opt/hadoop/init.sh
   hadoop-datanode:
     container_name: hadoop-datanode
     image: apache/hadoop:3
