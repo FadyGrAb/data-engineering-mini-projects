@@ -1,9 +1,10 @@
 # Adding repo to apt-get
-echo "deb http://deb.debian.org/debian bullseye-backports main" > /etc/apt/sources.list.d/backports.list
+echo "deb http://deb.debian.org/debian/ bullseye main" >> /etc/apt/sources.list
+echo "deb-src http://deb.debian.org/debian/ bullseye main" >> /etc/apt/sources.list
 apt-get update
 
 # Installing dependencies
-apt-get install openjdk-17-jdk wget python3 jupyter-notebook -y
+apt-get install openjdk-11-jdk wget python3 jupyter-notebook -y
 
 # Downloading Spark
 wget https://dlcdn.apache.org/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz

@@ -4,7 +4,7 @@ WORKDIR /spark
 COPY install-spark.sh run-spark.sh /spark/
 RUN ./install-spark.sh
 ENV SPARK_HOME=/spark
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 EXPOSE 8080
 EXPOSE 8081

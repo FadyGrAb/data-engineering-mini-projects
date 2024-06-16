@@ -8,17 +8,17 @@ services:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
       - SPARK_MODE=master
-    env_file:
-      - ./spark/.env
+    # env_file:
+    #   - ./spark/.env
     ports:
-      - 8080:8080
-      - 4040:4040 # History server
-      - 18080:18080
+      - 8080:8080 # Master node ui
+      - 4040:4040 # Job progress
+      - 18080:18080 # History server
       - 8888:8888 # Jupyter server
       - 6066:6066 # Spark http server
     volumes:
-      - ./spark/.bashrc:/root/.bashrc
-      - ./spark/jupyter_notebook_config.py:/root/.jupyter/jupyter_notebook_config.py
+      - ./spark/jupyter/.bashrc:/root/.bashrc
+      - ./spark/jupyter/jupyter_notebook_config.py:/root/.jupyter/jupyter_notebook_config.py
       - ./spark/spark-defaults.conf:/spark/conf/spark-defaults.conf
     entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
 
@@ -36,6 +36,8 @@ services:
       - spark-master
     ports:
       - 8081:8081
+    volumes:
+      - ./spark/spark-defaults.conf:/spark/conf/spark-defaults.conf
     entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
     
     
@@ -56,6 +58,8 @@ services:
       - spark-master
     ports:
       - 8082:8081
+    volumes:
+      - ./spark/spark-defaults.conf:/spark/conf/spark-defaults.conf
     entrypoint: ["/bin/bash", "-c", "/spark/run-spark.sh"]
   
   
@@ -66,10 +70,13 @@ services:
     command: ["hdfs", "namenode"]
     ports:
       - 9870:9870
+      - 8020:8020
     env_file:
       - ./hadoop/config
     environment:
         ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    volumes:
+      - ./spark/pipeline/:/opt/hadoop/pipeline
   hadoop-datanode:
     container_name: hadoop-datanode
     image: apache/hadoop:3

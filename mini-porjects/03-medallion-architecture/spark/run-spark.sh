@@ -1,11 +1,13 @@
 #!/bin/bash
 
+mkdir /spark/work
+mkdir /tmp/spark-events
+
 if [ "$SPARK_MODE" = "master" ];
 then
     echo "master"
     source ~/.bashrc
     /spark/sbin/start-master.sh
-    mkdir -p /tmp/spark-events
     /spark/sbin/start-history-server.sh
     jupyter notebook --allow-root &
 else
