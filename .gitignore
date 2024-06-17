@@ -3,3 +3,4 @@ superset
 venv
 _basefiles
 *.drawio.bkp
+__pycache__
