@@ -31,7 +31,7 @@ services:
       - SPARK_MASTER_PORT=7077
       - SPARK_MODE=worker
       - WORKER_MEMORY=2g
-      - WORKER_CORES=3
+      - WORKER_CORES=6
     depends_on:
       - spark-master
     ports:
@@ -53,7 +53,7 @@ services:
       - SPARK_MASTER_PORT=7077
       - SPARK_MODE=worker
       - WORKER_MEMORY=2g
-      - WORKER_CORES=3
+      - WORKER_CORES=6
     depends_on:
       - spark-master
     ports:
@@ -70,7 +70,8 @@ services:
     command: ["hdfs", "namenode"]
     ports:
       - 9870:9870 # Namenode UI
-      - 8020:8020
+      - 8020:8020 # Hadoop IPC port
+      - 50070:50070 #webhdfs
     env_file:
       - ./hadoop/config
     environment:
@@ -82,6 +83,8 @@ services:
     container_name: hadoop-datanode
     image: apache/hadoop:3
     command: ["hdfs", "datanode"]
+    environment:
+      - 50075:50075 #webhdfs
     env_file:
       - ./hadoop/config    
   hadoop-resourcemanager:
@@ -109,3 +112,15 @@ services:
       - 5432:5432
     volumes:
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  dashboard:
+    image: dashboard:homemade
+    container_name: dashboard
+    # environment:
+    #   - FLASK_ENV=development
+    #   - FLASK_DEBUG=1
+    ports:
+      - 5000:5000
+    volumes:
+      - ./dashboard/app.py:/app/app.py
