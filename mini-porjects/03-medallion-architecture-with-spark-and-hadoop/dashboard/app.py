@@ -11,15 +11,19 @@ app = Flask(__name__)
 
 def get_hdfs_data(hdfs_path: str) -> pd.DataFrame:
     client = InsecureClient("http://hadoop-namenode:50070")
-    files = client.list(hdfs_path)
-    files = [file for file in files if ".csv" in file]
-    dfs = []
-    for file in files:
-        file_hdfs_path = f"{hdfs_path}/{file}"
-        with client.read(file_hdfs_path) as reader:
-            df = pd.read_csv(io.BytesIO(reader.read()))
-        dfs.append(df)
-    return pd.concat(dfs)
+    try:
+        files = client.list(hdfs_path)
+        files = [file for file in files if ".csv" in file]
+        dfs = []
+        for file in files:
+            file_hdfs_path = f"{hdfs_path}/{file}"
+            with client.read(file_hdfs_path) as reader:
+                df = pd.read_csv(io.BytesIO(reader.read()))
+            dfs.append(df)
+        result = pd.concat(dfs)
+    except:
+        result = pd.DataFrame()
+    return result
 
 
 @app.route("/", methods=["GET"])
@@ -27,6 +31,10 @@ def home():
 
     deliveries_count_df = get_hdfs_data("/data/gold/deliveriescount")
     deliveries_avg_df = get_hdfs_data("/data/gold/deliveriesavg")
+
+    if deliveries_avg_df.empty or deliveries_count_df.empty:
+        return "<h1>Branches Performance</h1><h2>No data available</h2>"
+
     deliveries_count_df.sort_values(by="deliveries_count", ascending=True, inplace=True)
     deliveries_avg_df.sort_values(by="avg_deliverytime", ascending=False, inplace=True)
 
