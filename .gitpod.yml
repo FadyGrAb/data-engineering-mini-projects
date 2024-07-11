@@ -1,0 +1,24 @@
+tasks:
+  - name: rust
+    init: |
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      source $HOME/.cargo/env
+      
+  - name: oh-my-posh
+    before: |
+      sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
+      sudo chmod +x /usr/local/bin/oh-my-posh
+
+      mkdir ~/.poshthemes
+      wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip -O ~/.poshthemes/themes.zip
+      unzip ~/.poshthemes/themes.zip -d ~/.poshthemes
+      chmod u+rw ~/.poshthemes/*.omp.*
+      rm ~/.poshthemes/themes.zip
+    command: |
+      echo "eval \"\$(oh-my-posh init bash --config ~/.poshthemes/stelbent-compact.minimal.omp.json)\"" >> ~/.bashrc
+      source ~/.bashrc
+
+vscode:
+  extensions:
+    - rust-lang.rust-analyzer
+    - vadimcn.vscode-lldb
