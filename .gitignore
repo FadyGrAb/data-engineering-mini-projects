@@ -4,3 +4,4 @@ venv
 _basefiles
 *.drawio.bkp
 __pycache__
+target
