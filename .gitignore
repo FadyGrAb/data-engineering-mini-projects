@@ -7,4 +7,4 @@ __pycache__
 target
 */04*/*/duckdb/
 */04*/bin/duckdb
-*/04*/duckdb-output/rust-pipeline
+*/04*/pipeline-run/rust-pipeline

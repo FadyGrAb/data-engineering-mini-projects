@@ -24,8 +24,3 @@ tasks:
     command: |
       echo "eval \"\$(oh-my-posh init bash --config ~/.poshthemes/stelbent-compact.minimal.omp.json)\"" >> ~/.bashrc
       source ~/.bashrc
-
-vscode:
-  extensions:
-    - rust-lang.rust-analyzer
-    - vadimcn.vscode-lldb

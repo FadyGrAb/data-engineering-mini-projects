@@ -16,7 +16,9 @@ services:
     depends_on:
       - postgres
     env_file:
-      - ./duckdb-output/.env
+      - ./pipeline-run/.env
     volumes:
-      - ./duckdb-output/:/pipeline
+      - ./pipeline-run/:/pipeline
+    ports:
+      - 8000:8000
     entrypoint: ["bash", "/pipeline/run"]

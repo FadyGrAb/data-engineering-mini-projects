@@ -2,5 +2,5 @@
 
 cd rust-pipeline
 cargo build --release
-cp ./target/release/rust-pipeline ../duckdb-output/rust-pipeline
-sudo chmod +x ./duckdb-output/rust-pipeline
+cp ./target/release/rust-pipeline ../pipeline-run/rust-pipeline
+sudo chmod +x ../pipeline-run/rust-pipeline
