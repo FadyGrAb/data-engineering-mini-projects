@@ -19,6 +19,4 @@ services:
       - ./pipeline-run/.env
     volumes:
       - ./pipeline-run/:/pipeline
-    ports:
-      - 8000:8000
     entrypoint: ["bash", "/pipeline/run"]

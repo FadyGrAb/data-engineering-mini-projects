@@ -1,7 +1,10 @@
 cd mini-porjects/04-data-modeling-with-rust
 docker compose up postgres -d
 bin/deploy
-docker compose up -d
+docker compose up pipeline -d
 
 bin/get-duckdb
-https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_odbc-windows-amd64.zip
+
+sudo chmod 777 pipeline-run/duckdb/pagila_sales.duckdb 
+
+bin/duckdb pipeline-run/duckdb/pagila_sales.duckdb
