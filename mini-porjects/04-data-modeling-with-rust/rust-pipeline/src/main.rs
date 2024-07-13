@@ -132,11 +132,11 @@ async fn get_fact_sales(
     let mut sales = Vec::new();
     for row in rows {
         sales.push((
-            row.sales_id.unwrap(),
+            row.sales_id,
             row.sale_date.unwrap(),
-            row.customer_id.unwrap(),
-            row.amount.unwrap(),
-            row.film_id.unwrap(),
+            row.customer_id,
+            row.amount,
+            row.film_id,
         ));
     }
 
