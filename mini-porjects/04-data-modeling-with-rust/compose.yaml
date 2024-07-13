@@ -1,0 +1,11 @@
+name: rust-de
+services:
+  postgres:
+    image: postgres:16.3
+    container_name: postgresql
+    env_file:
+      - ./postgresql/.env
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgresql/db-init:/docker-entrypoint-initdb.d/
