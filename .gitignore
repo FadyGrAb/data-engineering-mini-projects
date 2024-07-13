@@ -5,3 +5,6 @@ _basefiles
 *.drawio.bkp
 __pycache__
 target
+*/04*/*/duckdb/
+*/04*/bin/duckdb
+*/04*/duckdb-output/rust-pipeline

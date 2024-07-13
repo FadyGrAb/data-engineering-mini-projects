@@ -9,3 +9,14 @@ services:
       - 5432:5432
     volumes:
       - ./postgresql/db-init:/docker-entrypoint-initdb.d/
+
+  pipeline:
+    image: ubuntu:latest
+    container_name: pipeline
+    depends_on:
+      - postgres
+    env_file:
+      - ./duckdb-output/.env
+    volumes:
+      - ./duckdb-output/:/pipeline
+    entrypoint: ["bash", "/pipeline/run"]

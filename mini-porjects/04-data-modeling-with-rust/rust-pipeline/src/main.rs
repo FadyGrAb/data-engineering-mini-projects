@@ -16,16 +16,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await?;
 
     // Create DuckDB database and tables
-    let mut conn = Connection::open("star_schema.duckdb")?;
+    std::fs::create_dir("duckdb").unwrap_or_default();
+    let mut conn = Connection::open("duckdb/pagila_sales.duckdb")?;
     create_tables(&conn)?;
 
-    // Extract, transform, and load data incrementally
+    println!("Extracting, transforming and loading data ...");
+    // Extract, transform, and load data
     let dim_customers = get_dim_customers(&pool).await?;
     let dim_films = get_dim_films(&pool).await?;
     let fact_sales = get_fact_sales(&pool).await?;
 
+    println!("Saving to DuckDB ...");
     save_to_duckdb(&mut conn, dim_customers, dim_films, fact_sales)?;
 
+    println!("Finished");
     Ok(())
 }
 

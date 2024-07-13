@@ -1,0 +1,6 @@
+#! /usr/bin/bash
+
+cd rust-pipeline
+cargo build --release
+cp ./target/release/rust-pipeline ../duckdb-output/rust-pipeline
+sudo chmod +x ./duckdb-output/rust-pipeline
