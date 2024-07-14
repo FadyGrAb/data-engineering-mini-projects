@@ -1,117 +1,74 @@
-cd mini-porjects/04-data-modeling-with-rust
-docker compose up postgres -d
-bin/deploy
-docker compose up pipeline -d
-
-bin/get-duckdb
-
-sudo chmod 777 pipeline-run/duckdb/pagila_sales.duckdb 
-
-bin/duckdb pipeline-run/duckdb/pagila_sales.duckdb
-
-
+# Data Modeling with Rust
+- [Data Modeling with Rust](#data-modeling-with-rust)
+  - [What is this project all about](#what-is-this-project-all-about)
+  - [System architecture](#system-architecture)
+  - [Demo](#demo)
+  - [Instructions](#instructions)
+  - [Stopping the project](#stopping-the-project)
+  - [Things to consider if you want to make this into real-world project](#things-to-consider-if-you-want-to-make-this-into-real-world-project)
+  - [Key takeaways](#key-takeaways)
+  - [References](#references)
+ 
 ## What is this project all about
-In this project, I've implemented the *Star Schema* where you organise your data into *Fact* and *Dimension* tables. This format is preferable in the BI and data warehousing applications. What's new here, is that I've used *Rust* for the ETL pipeline to load the data into *DuckDB*.
+In this project, I've implemented the [Star Schema](https://en.wikipedia.org/wiki/Star_schema) where you organize your data into *Fact* and *Dimension* tables. This format is preferable in the BI and data warehousing applications. What's new here, is that I've used *Rust* for the ETL pipeline to load the data into *DuckDB*.
 
 ## System architecture
-![architecture](./diagrams/medallion-LLD.svg)
-### The Retail app
-I've simulated the retail app with a python script that randomly generates purchases and handle their lifecycle as NEW -> INTRANSIT -> DELIVERED. The app then stores that in a [Postgresql](https://www.postgresql.org/) database named *retail* that has two tables, *orders* and *ordershistory*. Separate users with appropriate privileges are created to the app to write the data to the database and to Spark, to read the data. The database is initiated with `postgresql/init.sql` script.
-
-### Apache Spark Cluster
-A [standalone ](https://spark.apache.org/docs/latest/spark-standalone.html) cluster with one master none (spark-master) and two worker nodes (spark-worker-1 and spark-worker-2). The REST API endpoint and history server are enabled. I've build its docker image and didn't use any image from Docker Hub.
-
-### The Development Jupyter server
-A jupyter server on the Master Node of the spark cluster running on port 8888 that is exposed to localhost in the Docker compose file. This is how I developed the pipeline's PySpark scripts. This allowed rapid and convenient development for the Spark jobs. The server is configures to have a password `pass` that can be changed from `spark/jupyter/jupyter_notebook_config.py` or via `JUPYTER_NOTEBOOK_PASSWORD` if passed to the Docker compose file.
-
-### The Orchestrator
-A python script that communicates with Apache Spark via its REST API endpoint to submit *PySpark* scripts stored on HDFS in `hdfs:<namenode>/jobs/*` and "orchestrate" the pipeline *Ingestion* -> *Transformation* -> *Serving* via Spark's drivers status API. All the PySpark files are in `spark/pipeline/`.
-
-### Spark incremental database loading
-The `ingestion.py` script implements a *bookmarking* mechanism which allows Spark to check for and sets bookmarks during the database data ingestion so it only loads new data and not to strain the app's databases with long running queries each time the pipeline is executed. The bookmark is stored in HDFS in `hdfs:<namenode>/data/bronze/bookmark` as JSON.
-
-### Hadoop cluster
-The official image on Docker Hub with minimal configuration changes on `hadoop/config` where WebHDFS is enabled.
-
-### The dashboard app
-A Flask app the read the csv file stored in the *Gold* folder in HDFS and outputs the resulting data as graphs. It meant to be the data consumer for this pipeline where business users can get their metrics.
-
-## Spark Operations
-### Bronze stage
-Spark is incrementally ingesting the *orders* and *ordershistory* table partitions by date in *parquet* format in the *Bronze*.
-### Silver stage
-Spark joins the two table from the *Bronze* stage and filter out "INTRANSIT" records and stores them in the *Silver* directory in *parquet* format.
-### Gold stage
-Spark pivot the joined table to get one record per order that contains the order date and delivery date, subtracts then and get the delivery time in hours.
-Then aggregates the result to get the orders count and average delivery time per branch. Finally, it stores them as CSV files in the *Gold* directory.
-
-## Exposed ports and services:
-I've configured the the majority of the the services in the Docker compose file to be accessible from localhost:
-- **Dashboard App**: http://localhost:5000
-- **Spark master node UI**: http://localhost:8080
-- **Spark worker node 1 UI**: http://localhost:8081
-- **Spark worker node 2 UI**: http://localhost:8082
-- **Spark history server**: http://localhost:18080
-- **Spark running driver UI**: http://localhost:4040
-- **Jupyter server running on Spark cluster**: http://localhost:8888
-- **Hadoop namenode UI**: http://localhost:9870
+![architecture](./diagrams/StarSchema.svg)
+I'm using the [pagila](https://github.com/devrimgunduz/pagila) sample postgresql database. This database is the Postgres port of the Sakila example database for MySQL. I've used the initiation scripts in teh `postgresql` directory for it. It's about a film rental service and how it relational model could be implemented. For the ETL, I've compiled a Rust binary that does the Extraction from the Postgres DB, Transforms the tables into Facts and Dimensions tables, and finally Loads them into [DuckDB](https://duckdb.org/) (as per their official website, DuckDB is a fast in-process analytical database).
+The final tables in DuckDB, are the *fact_sales*, *dim_customers*, and *dim_films*. This allows for easy financial BI analysis regarding the films library and customers base. 
 
 ## Demo
 ![demo](./diagrams/demo.gif)
 ## Instructions
-I assume that you have Python and Docker installed in your system.
+This time, I'm using a CDE (Cloud Development Environment). I've used [GitPod](https://gitpod.io/workspaces) for this project but [Github Codespaces](https://github.com/features/codespaces) is a viable option too. If you are using Gitpod, start your Instance in the *main* branch of the repo and follow the instructions:
 
 - Go to the project's root directory.
-- Create a Python virtual env and install the requirements in `./requirements.txt`
-- Build the custom Spark docker image (this could take a while)
   ```bash
-  docker build spark:homemade ./spark/
+  cd mini-porjects/04-data-modeling-with-rust
   ```
-- Build the Dashboard app docker image
+- Start only the Postgres DB so we can compile the rust binary
   ```bash
-  docker build dashboard:homemade ./dashboard/
+  docker compose up postgres -d
+- Start the deploy script so we can compile and copy the binary in the pipeline directory (this could take a while)
+  ```bash
+  bin/deploy
   ```
-- Spin up the system
+- After a successful built, we can now start the pipeline which is an *Ubuntu* container with the rust binary we've just built.
   ```bash
-  docker compose up -d
+  docker compose up pipeline
   ```
-- Activate the virtual env and run the retail app. You will see simulated transactions in your terminal.
+- You will notice that the pipeline container stops after it finishes and you will get `pipeline-run/duckdb/` directory containing the *DuckDB* file.
+- (Optional) You can verify from the stopped pipeline container logs that the binary has extracted, transomed, and loaded the data.
+- To be able to explore the resulting *DuckDB* file, we need the DuckDB CLI. Execute this script to get it.
   ```bash
-  python ./retailapp/retailapp.py
+  bin/get-duckdb
   ```
-- Open a new terminal and initiate HDFS directories and copy the pipeline PySpark scripts to HDFS
+- To open the DuckDB file, enter the following
   ```bash
-  docker compose exec hadoop-namenode bash -c "/opt/hadoop/init.sh"
-- Go to the dashboard's app url (http://localhost:5000) and validate that there aren't any data yet.
-- Wait a while for the retail app's database to populate then run the Spark pipeline withe the orchestrator
-  ```bash
-  python ./orchestrator/scheduler.py
+  sudo chmod 777 pipeline-run/duckdb/pagila_sales.duckdb 
+  bin/duckdb pipeline-run/duckdb/pagila_sales.duckdb
   ```
-- (Optional) You can check the progress from Spark's master node UI.
-- After the pipeline finishes successfully (all stages are ended with FINISHED), visit the dashboard's app url again and refresh. You will get the processed data now.
-- (Optional) You can rerun the pipeline and notice the dashboard's data changes.
+- (Optional) Try the following to explore the file
+  ```sql
+  .help --to get the list of available commands
+  .tables --to get the list of tables
+  SELECT * FROM fact_sales LIMIT 10; --to get the first 10 record form the fact_sales table.
+  -- ....
+  ```
 
 ## Stopping the project
-I didn't configure any Named volumes on Docker, so once you stop the project, all the data is lost.
-To stop the project just execute `docker compose down`
+Type `docker compose down` to stop the docker containers and don't forget to stop the instance if you are using a CDE.
 
 ## Things to consider if you want to make this into real-world project
-- Instead of the custom *orchestrator* I used, a proper orchestration tool should replace it like [Apache Airflow](https://airflow.apache.org/), [Dagster](https://dagster.io/), ..., etc.
-- Also, instead of the custom Dashboard app, a proper BI tool like [Power BI](https://app.powerbi.com/home), [Tableau](https://www.tableau.com/), [Apache Superset](https://superset.apache.org/), ..., etc. will be more powerful and flexible.
-- Bookmarking should be in the *Silver* stage as well.
-- In a multi-tenant environment, controlling access to the Spark and Hadoop cluster is a must. Tool like  [Apache Ranger](https://ranger.apache.org/) are usually used to serve this purpose.
-- This architecture isn't limited to ingesting from one source, multiple sources can be ingested too and enriched from other sources in the *Silver* stage.
-- The Spark operation in this project are rather simple. More complex operations can be done leveraging Spark's powerful analytics engine.
+- The binary container could be run on a schedule (via crontab for example) to enable batch processing.
+- Incremental loading should be applied to avoid loading the whole DB each time the pipeline runs especially if the DB is expanding rapidly.
+- If the dimensions are changing, a proper SCD (slowly changing dimension) strategy should be applied.
 
 ## Key takeaways
-- You can control almost everything in a spark cluster from the `spark-defaults.conf` file.
-- Spark has a REST endpoint to submit jobs and manage the cluster but it isn't enabled by default.
-- Spark history server isn't enabled by default.
-- Don't use the latest Java version for Spark even if the docs says it's supported. (I had compatibility issue that appeared down the road as I was using Java 17).
-- Developing Spark driver apps in a jupyter notebook will make your life way easier.
-- Hadoop also has an http endpoint called WebHDFS which isn't enabled by default too.
-- docker-entrypoint-initdb.d is very useful for Postgresql initiation. 
-- Never use plaintext passwords in your code, instead you env vars or cloud secrets services.
+- DuckBD is very hard to visualize using mainstream BI tools like Power BI or Apache Superset.
+- The footprint of the rust binary is minimal. The pipeline image size was less than 80 MB in size!
+- The pipeline finishes very fast (in around 6 seconds in my CDE instance) for collecting ~ 18K records.
+- Rust for ETL workloads is straightforward. But you have be familiar with Rust syntax first.
 
 ## References
 All the used tool official docs.
